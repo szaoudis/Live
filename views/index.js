@@ -34,15 +34,27 @@ function createRecorder (stream, mimeType) {
 
   mediaRecorder.ondataavailable = function (e) {
     if (e.data.size > 0) {
+      console.log(e);
       recordedChunks.push(e.data);
-      const blob = new Blob([e.data], {
-        type: 'video/webm'
+      
+      const blob = new Blob(recordedChunks, {
+        type: 'video/mp4'
       });
-      console.log(blob);
+
       let batch = URL.createObjectURL(blob);
+      console.log(blob);
+      console.log(batch);
+
+      let downloadLink = document.createElement('a');
+      downloadLink.href = batch;
+      let filename = uuidv4();
+      downloadLink.download = `${filename}.mp4`;
+      downloadLink.click();
+
       xhttp.open("POST", "/room");
       xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-      xhttp.send("BlobUrl=" + batch);
+      xhttp.send("filename=" + filename);
+
       URL.revokeObjectURL(blob); // remove from memory
     }  
   };
@@ -50,12 +62,11 @@ function createRecorder (stream, mimeType) {
      saveFile(recordedChunks);
      recordedChunks = [];
   };
-  mediaRecorder.start(200); // For every 200ms the stream data will be stored in a separate chunk.
+  mediaRecorder.start(2000); // For every 200ms the stream data will be stored in a separate chunk.
   return mediaRecorder;
 }
 
 function saveFile(recordedChunks){
-  let video = document.getElementById("video");
   const blob = new Blob(recordedChunks, {
     type: 'video/webm'
   });
@@ -68,5 +79,10 @@ function saveFile(recordedChunks){
   downloadLink.click();
   URL.revokeObjectURL(blob); // clear from memory
   document.body.removeChild(downloadLink);
-  video.setAttribute("src", downloadLink.href);
+}
+
+function uuidv4() {
+  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+  );
 }
