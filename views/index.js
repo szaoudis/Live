@@ -1,6 +1,8 @@
 let start = document.getElementById('start');
 let stop  = document.getElementById('stop');
 let mediaRecorder;
+let count = 0;
+let source = document.getElementById("video");
 
 start.addEventListener('click', async function(){
     let stream = await recordScreen();
@@ -56,6 +58,13 @@ function createRecorder (stream, mimeType) {
       xhttp.send("filename=" + filename);
 
       URL.revokeObjectURL(blob); // remove from memory
+      setTimeout(function () {
+        if(count == 0) {
+          console.log(source);
+          count++;
+          source.src = "/videoPlay";
+        }
+      }, 1000);
     }  
   };
   mediaRecorder.onstop = function () {
